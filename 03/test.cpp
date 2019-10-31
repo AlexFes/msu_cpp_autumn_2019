@@ -1,10 +1,12 @@
 #include <iostream>
+#include "matrix.h"
 
-#include "matrix.cpp"
-
-#define check_equal(x, y)  do { if ((x) != y) std::cout << "line " << __LINE__ << ": expected " << y << " got " << (x) << '\n'; } while(0)
-#define check(cond) do { if (!(cond)) std::cout << "line " << __LINE__ << ": " << #cond << '\n'; } while(0)
+#define check_equal(x, y)  do { if (x != y) std::cout << "line " << __LINE__ << ": expected " << y << " got " << x << '\n'; } while(0)
 #define check_throw(expr, err) do { try { expr; } catch (const err&) { break ; } catch (...) { } std::cout << "line " << __LINE__ << '\n'; } while(0)
+
+void check(bool cond) {
+    if (!cond) std::cout << "line " << __LINE__ << ": " << cond << '\n';
+}
 
 int main()
 {

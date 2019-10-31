@@ -7,94 +7,83 @@
 */
 
 #include <iostream>
+#include "matrix.h"
 
-class Proxy {
-public:
-    Proxy(int* p, int matrixColumns): pointer(p), cols(matrixColumns) {};
+Proxy::Proxy(int* p, int matrixColumns) {
+    pointer = p;
+    cols = matrixColumns;
+}
 
-    int& operator[](int m) {
-        if (m > cols) {
-            std::out_of_range("Columns number out of range");
-        }
-
-        return *(pointer + m);
+int& Proxy::operator[](int m) {
+    if (m > cols) {
+        std::out_of_range("Columns number out of range");
     }
 
-private:
-    int* pointer;
-    int cols;
-};
+    return *(pointer + m);
+}
 
-class Matrix {
-public:
-    Matrix(int n, int m): rows(n), cols(m) {
-        pointer = new int[n * m];
-    };
+Matrix::Matrix(int n, int m) {
+    rows = n;
+    cols = m;
+    pointer = new int[n * m];
+}
 
-    ~Matrix() {
-        delete[] pointer;
-    };
+Matrix::~Matrix() {
+    delete[] pointer;
+}
 
-    Proxy operator[](int n) {
-        if (n > rows) {
-            std::out_of_range("Rows number out of range");
+Proxy Matrix::operator[](int n) const{
+    if (n > rows) {
+        std::out_of_range("Rows number out of range");
+    }
+
+    return Proxy(pointer + n*cols, cols);
+}
+
+void Matrix::operator*=(int val) {
+    for (int i = 0; i < rows; ++i) {
+        for (int j = 0; j < cols; ++j) {
+            *(pointer + i*cols + j) *= val;
         }
+    }
+}
 
-        return Proxy(pointer + n*cols, cols);
-    };
-
-    void operator*=(int val) {
+bool Matrix::operator==(const Matrix& m) {
+    if (m.cols != cols || m.rows != rows) {
+        return false;
+    } else {
         for (int i = 0; i < rows; ++i) {
             for (int j = 0; j < cols; ++j) {
-                *(pointer + i*cols + j) *= val;
-            }
-        }
-    }
-
-    bool operator==(Matrix m) {
-        if (m.cols != cols || m.rows != rows) {
-            return false;
-        } else {
-            for (int i = 0; i < rows; ++i) {
-                for (int j = 0; j < cols; ++j) {
-                    if (*(pointer + i*cols + j) != m[i][j]) {
-                        return false;
-                    }
+                if (*(pointer + i*cols + j) != m[i][j]) {
+                    return false;
                 }
             }
         }
+    }
 
+    return true;
+}
+
+bool Matrix::operator!=(const Matrix& m) {
+    if (m.cols != cols || m.rows != rows) {
         return true;
+    } else {
+        for (int i = 0; i < rows; ++i) {
+            for (int j = 0; j < cols; ++j) {
+                if (*(pointer + i*cols + j) != m[i][j]) {
+                    return true;
+                }
+            }
+        }
     }
 
-    int getRows() {
-        return this->rows;
-    };
+    return false;
+}
 
-    int getColumns() {
-        return this->cols;
-    }
+int Matrix::getRows() {
+    return this->rows;
+}
 
-private:
-    int rows;
-    int cols;
-    int* pointer;
-};
-
-// int main(int argc, char** argv) {
-//     Matrix m(2, 3);
-//     m[0][0] = 1;
-//     m[0][1] = 2;
-//     m[0][2] = 3;
-//     m[1][0] = 1;
-//     m[1][1] = 2;
-//     m[1][2] = 3;
-//
-//     m*=3;
-//
-//     std::cout << m[0][0] << "\n";
-//     std::cout << m[0][1] << "\n";
-//     std::cout << m[0][2] << "\n";
-//
-//     return 0;
-// }
+int Matrix::getColumns() {
+    return this->cols;
+}
