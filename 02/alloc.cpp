@@ -1,38 +1,29 @@
 #include <iostream>
-
-class LinearAllocator
-{
-public:
-    LinearAllocator(size_t maxSize);
-    char* alloc(size_t size);
-    void reset();
-
-public:
-    char* p;
-    int count;
-};
+#include <cerrno>
+#include <stdlib.h>
+#include <cstring>
+#include "Allocator.h"
 
 LinearAllocator::LinearAllocator(size_t maxSize) {
-    p = (char*) malloc(maxSize);
-    count = maxSize;
-    std::cout << "Init successful! Pointer = " << "" << "\n";
+    size_all = maxSize % allign ? (maxSize / allign + 1) * allign : maxSize;
+    pointer = new char[size_all];
 }
 
-char* LinearAllocator::alloc(size_t size) {
-    std::cout << "Alloc successful! New pointer = " << p + size << "\n";
-    return p + size;
+LinearAllocator::~LinearAllocator() {
+    if (pointer)
+        delete[] pointer;
+}
+
+void* LinearAllocator::alloc(size_t size) {
+    size_t allign = 8;
+    size_t tmp_size = size % allign ? size + 1 : size;
+    if (tmp_size > size_all - size_used)
+        throw std::runtime_error("not enough memory");
+    void *tmp_return = pointer + size_used;
+    size_used += tmp_size;
+    return tmp_return;
 }
 
 void LinearAllocator::reset() {
-    free(p);
-    std::cout << "Memory release successful!\n";
-}
-
-int main(int argc, char** argv) {
-    LinearAllocator allocator((size_t) argv[1]);
-    allocator.alloc((size_t) argv[2]);
-    allocator.alloc((size_t) argv[3]);
-    allocator.alloc((size_t) argv[4]);
-    allocator.reset();
-    return 0;
+    size_used = 0;
 }
