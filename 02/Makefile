@@ -1,7 +1,7 @@
 CC = g++
 
-all: alloc.cpp
-	$(CC) alloc.cpp -o alloc
+all: alloc.cpp tests.cpp
+	$(CC) alloc.cpp tests.cpp -o alloc
 
-run: alloc.cpp
+run: alloc.cpp tests.cpp
 	./alloc

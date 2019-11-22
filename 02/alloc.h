@@ -10,5 +10,5 @@ private:
     char* pointer = nullptr;
     size_t size_all = 0;
     size_t size_used = 0;
-    size_t allign = 8;
+    size_t align = 8;
 };
