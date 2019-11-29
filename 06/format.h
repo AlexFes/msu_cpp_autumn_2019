@@ -67,14 +67,14 @@ public:
     }
 };
 
+string format(const char* str) {
+    Format res(str);
+    return res.format_res();
+}
+
 template<typename... Args>
 string format(const char* str, Args&&... args) {
     Format res(str);
     res.write(std::forward<Args>(args)...);
-    return res.format_res();
-}
-
-string format(const char* str) {
-    Format res(str);
     return res.format_res();
 }
