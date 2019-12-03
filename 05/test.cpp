@@ -63,5 +63,7 @@ int main()
     checkEqual(y.b, false);
     checkEqual(y.c, 500);
 
+    std::cout << "ok\n";
+
     return 0;
 }

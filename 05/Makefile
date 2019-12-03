@@ -1,10 +1,7 @@
 CC = g++
 
-all: serializer.cpp test.cpp
-	$(CC) serializer.cpp -o serializer
+all: serializer.h test.cpp
+	$(CC) test.cpp -o serializer
 
-test: test.cpp matrix.cpp
-	$(CC) test.cpp matrix.cpp -o test
-
-run: serializer.cpp
+run: serializer.h
 	./serializer

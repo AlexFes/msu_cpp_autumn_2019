@@ -1,43 +1,144 @@
+/*
+Простой сериализатор поддерживающий два типа: uint64_t и bool.
+Сериализовать в текстовый вид с разделением пробелом, bool сериализуется как true и false
+Deserializer реализуется аналогично Serializer, только принимает std::istream, а не std::ostream
+*/
+
 #pragma once
 #include <iostream>
 
-enum class Error {
+enum class Error
+{
     NoError,
     CorruptedArchive
 };
 
 class Serializer {
+    static constexpr char Separator = ' ';
 public:
-    explicit Serializer(std::stringstream& out)
-        : out_(out) {
+    explicit Serializer(std::ostream& out)
+        : out_(out)
+    {
     }
 
     template <class T>
-    Error save(T& object) {
+    Error save(T& object)
+    {
         return object.serialize(*this);
     }
 
     template <class... ArgsT>
-    Error operator()(ArgsT... args) {
-        return process(args...);
-    }
-
-    template <class T>
-    void process(T&& value) {
-        out_ << Separator << value;
-    }
-
-    template <class T, class... Args>
-    void process(T&& value, Args&&... args) {
-        process(std::forward<Args>(args)...);
-    }
-
-    std::stringstream get_result() {
-        return out_;
+    Error operator()(ArgsT&&... args)
+    {
+        return process(std::forward<ArgsT>(args)...);
     }
 
 private:
-    // process использует variadic templates
-    std::stringstream out_;
+    std::ostream &out_;
+
+    Error save(const bool val) {
+        if (val) {
+            out_ << "true" << Separator;
+        } else {
+            out_ << "false" << Separator;
+        }
+
+        return Error::NoError;
+    }
+
+    Error save(const uint64_t val) {
+        out_ << val << Separator;
+        return Error::NoError;
+    }
+
+    template<class T>
+    Error process(T&& val) {
+        return save(std::forward<T>(val));
+    }
+
+    template <class T, class... Args>
+    Error process(T&& val, Args&&... args) {
+        Error error = save(std::forward<T>(val));
+
+        if (error == Error::NoError) {
+            return process(std::forward<Args>(args)...);
+        } else {
+            return error;
+        }            
+    }
+};
+
+class Deserializer {
     static constexpr char Separator = ' ';
+public:
+    explicit Deserializer(std::istream& in)
+        : in_(in)
+    {
+    }
+
+    template <class T>
+    Error load(T& object)
+    {
+        return object.serialize(*this);
+    }
+
+    template <class... ArgsT>
+    Error operator()(ArgsT&&... args)
+    {
+        return process(std::forward<ArgsT>(args)...);
+    }
+
+private:
+    std::istream &in_;
+
+    Error load(bool& val) {
+        std::string text;
+        in_ >> text;
+
+        if (text == "true") {
+            val = true;
+        } else if (text == "false") {
+            val = false;
+        } else {
+            return Error::CorruptedArchive;
+        }
+
+        return Error::NoError;
+    }
+
+    Error load(uint64_t& val) {
+        std::string text;
+        in_ >> text;
+        uint64_t res = 0;
+
+        if (text.size() == 0) {
+            return Error::CorruptedArchive;
+        }
+
+        for (size_t i = 0; i < text.size(); i++) {
+            if (isdigit(text[i])) {
+                res = res * 10 + (text[i] - '0');
+            } else {
+                return Error::CorruptedArchive;
+            }
+        }
+
+        val = res;
+        return Error::NoError;
+    }
+
+    template<class T>
+    Error process(T&& val) {
+        return load(std::forward<T>(val));
+    }
+
+    template <class T, class... Args>
+    Error process(T&& val, Args&&... args) {
+        Error error = load(std::forward<T>(val));
+        if (error == Error::NoError) {
+            return process(std::forward<Args>(args)...);
+        } else {
+            return error;
+        }
+    }
 };
