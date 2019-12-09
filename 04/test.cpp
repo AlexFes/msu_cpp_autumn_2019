@@ -1,8 +1,8 @@
 #include <iostream>
 #include <limits>
 #include <sstream>
-
 #include "bigint.h"
+using namespace std;
 
 std::string toString(const BigInt& value)
 {
@@ -41,6 +41,7 @@ void doCheckEqual(const BigInt& actual, const char* expected, size_t line)
 
 int main()
 {
+    BigInt xqqq = -10;
     BigInt x = 3;
     checkEqual(x, "3");
     BigInt y = x;
@@ -60,7 +61,6 @@ int main()
 
     x = 100;
     checkEqual(x, "100");
-
     checkTrue(!(x < x));
     checkTrue(x < 200);
     checkTrue(BigInt(50) < x);
