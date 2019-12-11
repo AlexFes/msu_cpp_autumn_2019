@@ -29,13 +29,7 @@ public:
         return ind;
     }
 
-    template<typename T>
-    void write(T&& arg) {
-        n++;
-        this->arg << arg;
-        this->args.push_back(this->arg.str());
-        this->arg.str(std::string());
-    }
+    void write() {}
 
     template<typename T, typename... Args>
     void write(T&& arg, Args&&... args) {
@@ -66,11 +60,6 @@ public:
         return res;
     }
 };
-
-string format(const char* str) {
-    Format res(str);
-    return res.format_res();
-}
 
 template<typename... Args>
 string format(const char* str, Args&&... args) {
