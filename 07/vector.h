@@ -62,6 +62,7 @@ public:
         } else {
             pointer_ -= count;
         }
+
         return *this;
     }
 
@@ -112,6 +113,19 @@ private:
     size_t size_;
     size_t capacity_;
 
+    // utility func
+    void expand_space(size_t new_size) {
+        auto new_pointer = alloc_.allocate(new_size);
+
+        for (size_t i = 0; i < size_; ++i){
+            alloc_.construct(new_pointer + i, pointer_[i]);
+        }
+
+        alloc_.destroy(pointer_, size_);
+        alloc_.deallocate(pointer_, capacity_);
+        pointer_ = new_pointer;
+    }
+
 public:
     using iterator = Iterator<T>;
 
@@ -140,6 +154,7 @@ public:
         return pointer_[ind];
     }
 
+    // method for rvalue param
     void push_back(T&& val) {
         // empty vector
         if (capacity_ == 0) {
@@ -150,20 +165,28 @@ public:
         }
         // full vector
         else if (size_ == capacity_) {
-            auto new_pointer = alloc_.allocate(capacity_ * 2);
-
-            for (size_t i = 0; i < size_; ++i){
-                alloc_.construct(new_pointer + i, pointer_[i]);
-            }
-
-            alloc_.destroy(pointer_, size_);
-            alloc_.deallocate(pointer_, capacity_);
-            pointer_ = new_pointer;
+            expand_space(capacity_ * 2);
             pointer_[size_++] = val;
             capacity_ *= 2;
         }
         // regular vector
         else {
+            pointer_[size_++] = val;
+        }
+    }
+
+    // method for lvalue param
+    void push_back(const T& val) {
+        if (capacity_ == 0) {
+            pointer_ = alloc_.allocate(1);
+            pointer_[0] = val;
+            size_ = 1;
+            capacity_ = 1;
+        } else if (size_ == capacity_) {
+            expand_space(capacity_ * 2);
+            pointer_[size_++] = val;
+            capacity_ *= 2;
+        } else {
             pointer_[size_++] = val;
         }
     }
@@ -216,15 +239,7 @@ public:
             size_ = new_size;
         } else if (new_size > size_) {
             if (new_size > capacity_) {
-                auto new_pointer = alloc_.allocate(new_size);
-
-                for (size_t i = 0; i < size_; ++i) {
-                    alloc_.construct(new_pointer + i, pointer_[i]);
-                }
-
-                alloc_.destroy(pointer_, size_);
-                alloc_.deallocate(pointer_, capacity_);
-                pointer_ = new_pointer;
+                expand_space(new_size);
                 capacity_ = new_size;
             }
 
@@ -235,15 +250,7 @@ public:
 
     void reserve(size_t new_capacity) {
         if (new_capacity >= size_ && new_capacity > capacity_) {
-            T* new_pointer = alloc_.allocate(new_capacity);
-
-            for (size_t i = 0; i < size_; ++i) {
-                alloc_.construct(new_pointer + i, pointer_[i]);
-            }
-
-            alloc_.destroy(pointer_, size_);
-            alloc_.deallocate(pointer_, size_);
-            pointer_ = new_pointer;
+            expand_space(new_capacity);
             capacity_ = new_capacity;
         }
     }
